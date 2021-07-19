@@ -7,7 +7,7 @@ import { Main } from 'src/templates/Main';
 
 const Assessment = () => {
   const router = useRouter();
-  useCheckAuth({ router, currentPage: `/app/blog/category` });
+  useCheckAuth({ router, currentPage: `/assessment` });
 
   return (
     <Main meta={<Meta title="assessment" description="Khoot | Assessment" />}>

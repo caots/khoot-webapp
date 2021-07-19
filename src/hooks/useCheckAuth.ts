@@ -20,11 +20,11 @@ export default function useCheckAuth(data: any) {
   useEffect(() => {
     // case reload page
     if (!getToken(STORAGE_KEY.ACCESS_TOKEN) || !!getUserDataMsg) {
-      router.push('/login', { state: { previousPage: currentPage } });
+      router.push('/login');
     }
     // case logged out
     if (!getToken(STORAGE_KEY.ACCESS_TOKEN) && !isAuth && !isFetchingUserData) {
-      router.push('/login', { state: { previousPage: currentPage } });
+      router.push('/login');
     }
   }, [currentPage, getUserDataMsg, isAuth, isFetchingUserData, router, userData]);
 }
