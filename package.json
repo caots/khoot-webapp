@@ -11,8 +11,7 @@
     "clean": "rimraf .next out",
     "lint": "next lint",
     "format": "prettier --write .",
-    "build-types": "tsc --noEmit --pretty",
-    "prepare": "husky install"
+    "build-types": "tsc --noEmit --pretty"
   },
   "dependencies": {
     "@emotion/react": "^11.4.0",
