@@ -3,7 +3,7 @@ import { REACT_APP_API_ENDPOINT } from 'src/config';
 import _ from 'lodash';
 import SearchAssessment from 'src/model/searchParams';
 
-class ProductApi {
+class AssessmentApi {
   assessmentApiEndpoint: string;
 
   constructor() {
@@ -68,20 +68,15 @@ class ProductApi {
   //   );
   // }
 
-  // updateStatus({ product, token }) {
-  //   return axiosRequest(this.productApiEndpoint + `/status`, axiosMethod.PUT, token, {
-  //     ...product
-  //   });
-  // }
+  updateStatus(assessment: any, token: string) {
+    return axiosRequest(this.assessmentApiEndpoint + `/status`, axiosMethod.PUT, token, {
+      ...assessment
+    });
+  }
 
-  // updateStock({ product, token }) {
-  //   const data = { id: product.id, out_of_stock: product.outOfStock };
-  //   return axiosRequest(this.productApiEndpoint + `/out-of-stock`, axiosMethod.PUT, token, data);
-  // }
-
-  // deleteProduct({ productId, token }) {
-  //   return axiosRequest(this.productApiEndpoint + `/${productId}`, axiosMethod.DELETE, token, null);
-  // }
+  deleteAssessment(id: number, token: string) {
+    return axiosRequest(this.assessmentApiEndpoint + `/${id}`, axiosMethod.DELETE, token, null);
+  }
 }
 
-export default new ProductApi();
+export default new AssessmentApi();

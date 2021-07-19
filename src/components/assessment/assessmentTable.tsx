@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
+import DialogSelect from './dialogSelect';
 import ConfirmDeleteDialog from 'src/components/customDialog';
 import {
   Paper,
@@ -21,18 +22,22 @@ import { displayToast } from 'src/utils/commonService';
 import {
   VisibilityTwoTone as ViewIcon,
   EditTwoTone as EditIcon,
-  DeleteTwoTone as DeleteIcon,
+  DeleteTwoTone as DeleteIcon
 } from '@material-ui/icons';
 import Assessment from 'src/model/assessment';
 import { ASSESSMENT_STATUS } from 'src/config';
 import { MESSAGES } from 'src/config/message';
-import { clearMsg } from 'src/features/assessment/assessmentSlide';
+import {
+  clearMsg,
+  fetchDeleteAssessment,
+  fetchUpdateStatusAssessment
+} from 'src/features/assessment/assessmentSlice';
 
-const handleAssessmentStatus = (status: number) => {
+const handleAssessmentStatus = (assessment: Assessment) => {
   let label: any = '';
   let color: any = '';
   let variant: any = '';
-  switch (status) {
+  switch (assessment.status) {
     case ASSESSMENT_STATUS.ACTIVE.key:
       label = ASSESSMENT_STATUS.ACTIVE.value;
       color = 'primary';
@@ -51,15 +56,7 @@ const handleAssessmentStatus = (status: number) => {
 
       break;
   }
-  return (
-    <Chip
-      size="small"
-      label={label}
-      color={color}
-      variant={variant}
-      //onClick={() => handleButtonChangeStatus(assessment.id, assessment.status)}
-    />
-  );
+  return { label, color, variant };
 };
 
 const AssessmentTable = (dataRef: any) => {
@@ -76,9 +73,16 @@ const AssessmentTable = (dataRef: any) => {
   const fetchDeleteAssessmentMsg = useSelector(
     (state: any) => state.assessmentSlice.fetchDeleteAssessmentMsg
   );
+  const isFetchingUpdateStatusAssessment = useSelector(
+    (state: any) => state.assessmentSlice.isFetchingUpdateStatusAssessment
+  );
+  const fetchUpdateStatusAssessmentMsg = useSelector(
+    (state: any) => state.assessmentSlice.fetchUpdateStatusAssessmentMsg
+  );
 
-  const [dataFocus, setDataFocus] = useState({});
+  const [dataFocus, setDataFocus]: any = useState({});
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [openChangeStatusDialog, setOpenChangeStatusDialog] = useState(false);
 
   useEffect(() => {
     !isFetchingDeleteAssessment &&
@@ -88,11 +92,19 @@ const AssessmentTable = (dataRef: any) => {
       );
   }, [dispatch, fetchDeleteAssessmentMsg, isFetchingDeleteAssessment]);
 
+  useEffect(() => {
+    !isFetchingUpdateStatusAssessment &&
+      !!fetchUpdateStatusAssessmentMsg &&
+      displayToast(fetchUpdateStatusAssessmentMsg, MESSAGES.UPDATE_SUCCESS, null, () =>
+        dispatch(clearMsg(`fetchUpdateStatusAssessmentMsg`))
+      );
+  }, [dispatch, fetchUpdateStatusAssessmentMsg, isFetchingUpdateStatusAssessment]);
+
   const handleChangePage = (event: any, newPage: number) => {
     setFilter((parentFilter: any) => ({ ...parentFilter, page: newPage }));
   };
 
-  const handleChangeRowsPerPage = (event: any) : any => {
+  const handleChangeRowsPerPage = (event: any): any => {
     setFilter((parentFilter: any) => ({ ...parentFilter, pageSize: event.target.value, page: 0 }));
   };
 
@@ -106,13 +118,23 @@ const AssessmentTable = (dataRef: any) => {
     // setOpenEditDialog(true);
   };
 
+  const handleButtonChangeStatus = (id: number, status: number) => {
+    setDataFocus({ id, status });
+    setOpenChangeStatusDialog(true);
+  };
+
+  const handleChangeStatus = (status: number) => {
+    dispatch(fetchUpdateStatusAssessment({ ...dataFocus, status }));
+    setOpenChangeStatusDialog(false);
+  };
+
   const handleDeleteAssessment = () => {
-    //dispatch(fetchDelete({ id: dataFocus.id, filter }));
+    dispatch(fetchDeleteAssessment({ id: dataFocus, filter }));
     setOpenConfirmDialog(false);
   };
 
   const handleButtonDelete = (id: number) => {
-    setDataFocus({ ...dataFocus, id: id });
+    setDataFocus(id);
     setOpenConfirmDialog(true);
   };
 
@@ -135,6 +157,7 @@ const AssessmentTable = (dataRef: any) => {
             <TableBody>
               {!!assessments &&
                 assessments.map((assessment, index) => {
+                  const handledStatus = handleAssessmentStatus(assessment);
                   return (
                     <TableRow hover role="checkbox" tabIndex={-1} key={index}>
                       <TableCell>{index + filter.pageSize * filter.page + 1}</TableCell>
@@ -144,7 +167,15 @@ const AssessmentTable = (dataRef: any) => {
                       </TableCell>
                       <TableCell> {assessment.number_of_question} questions</TableCell>
                       <TableCell> {assessment.time} minus</TableCell>
-                      <TableCell>{handleAssessmentStatus(assessment.status)}</TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          label={handledStatus.label}
+                          color={handledStatus.color}
+                          variant={handledStatus.variant}
+                          onClick={() => handleButtonChangeStatus(assessment.id, assessment.status)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Stack direction="row" alignItems="center" spacing={0.5}>
                           <Tooltip title="view">
@@ -188,6 +219,17 @@ const AssessmentTable = (dataRef: any) => {
           title={MESSAGES.DELETE_ASSESSMENT}
           button1={{ title: MESSAGES.BTN_CANCEL, action: () => setOpenConfirmDialog(false) }}
           button2={{ title: MESSAGES.BTN_YES, action: handleDeleteAssessment }}
+        />
+      )}
+
+      {openChangeStatusDialog && (
+        <DialogSelect
+          title={MESSAGES.CHANGE_STATUS_ASSESSMENT}
+          open={openChangeStatusDialog}
+          setOpen={setOpenChangeStatusDialog}
+          action={handleChangeStatus}
+          data={Object.entries(ASSESSMENT_STATUS).map((item) => item[1])}
+          defaultValue={dataFocus.status}
         />
       )}
     </>

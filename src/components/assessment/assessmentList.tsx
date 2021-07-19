@@ -5,10 +5,11 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Profile from './profile';
 import AssessmentTable from './assessmentTable';
-import { selectUserInfo } from 'src/features/authen/authenSlide';
-import { PAGE_SIZE } from 'src/config';
+import { selectUserInfo } from 'src/features/authen/authenSlice';
+import { PAGE_SIZE, CRUD_ACTIONS } from 'src/config';
 import SearchAssessment from 'src/model/searchParams';
-import { fetchGetAllAssessment } from 'src/features/assessment/assessmentSlide';
+import AssessmentToolbar from './assessmentToolbar';
+import { fetchGetAllAssessment } from 'src/features/assessment/assessmentSlice';
 import Assessment from 'src/model/assessment';
 import User from 'src/model/user';
 
@@ -33,6 +34,7 @@ const AssessmentList = () => {
   );
   const userData: User = useSelector(selectUserInfo);
 
+  const [openCreateAssessmentDialog, setOpenCreateAssessmentDialog]: any = useState({});
   const [filter, setFilter] = useState({
     userId: 0,
     title: '',
@@ -43,8 +45,14 @@ const AssessmentList = () => {
   } as SearchAssessment);
 
   useEffect(() => {
-    if (userData) dispatch(fetchGetAllAssessment({ ...filter, userId: userData.id }));
-  }, [dispatch, filter, userData]);
+    if (userData) {
+      setFilter({ ...filter, userId: userData.id });
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    dispatch(fetchGetAllAssessment(filter));
+  }, [dispatch, filter]);
 
   return (
     <Grid container>
@@ -57,15 +65,15 @@ const AssessmentList = () => {
           }}
         >
           <Container maxWidth={false}>
-            {/* <ProductToolbar
-              categories={deepestCategories}
-              tags={productTags}
-              filter={filter}
-              setFilter={setFilter}
-              handleCreateButton={() =>
-                setOpenCreateProductDialog({ open: true, action: CRUD_ACTIONS.create })
-              }
-            /> */}
+            {userData && (
+              <AssessmentToolbar
+                filter={filter}
+                setFilter={setFilter}
+                handleCreateButton={() =>
+                  setOpenCreateAssessmentDialog({ open: true, action: CRUD_ACTIONS.create })
+                }
+              />
+            )}
             <Box sx={{ pt: 3 }}>
               <Grid container spacing={3}>
                 {isFetchingGetAllAssessment ? (

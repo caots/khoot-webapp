@@ -9,7 +9,7 @@ import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
 import InputIcon from '@material-ui/icons/Input';
 import Logo from 'src/components/logo';
 import { useDispatch } from 'react-redux';
-import { logout } from 'src/features/authen/authenSlide';
+import { logout } from 'src/features/authen/authenSlice';
 
 const DashboardTopbar = ({ onMobileNavOpen, ...rest }: any) => {
   const dispatch = useDispatch();

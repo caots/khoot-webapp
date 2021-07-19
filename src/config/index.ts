@@ -20,3 +20,10 @@ export const ASSESSMENT_STATUS = {
     value: `Activate`
   }
 };
+
+export const CRUD_ACTIONS = {
+  create: 1,
+  update: 2,
+  view: 3,
+  delete: 4
+};

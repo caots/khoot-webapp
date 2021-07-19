@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Meta } from 'src/layout/Meta';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import { fetchLogin, selectIsAuth } from 'src/features/authen/authenSlide';
+import { fetchLogin, selectIsAuth } from 'src/features/authen/authenSlice';
 import {
   Box,
   Button,
