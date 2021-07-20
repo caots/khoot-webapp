@@ -13,7 +13,8 @@ const Profile = (dataRef: any) => {
       sx={{
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        py: 3
       }}
     >
       <Avatar

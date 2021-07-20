@@ -1,6 +1,4 @@
 import { Grid, Paper, styled, Skeleton, Box, Container } from '@material-ui/core';
-// import { useRouter } from 'next/router';
-// import { makeStyles } from '@material-ui/styles';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Profile from './profile';
@@ -12,6 +10,7 @@ import AssessmentToolbar from './assessmentToolbar';
 import { fetchGetAllAssessment } from 'src/features/assessment/assessmentSlice';
 import Assessment from 'src/model/assessment';
 import User from 'src/model/user';
+import AssessmentEditDialog from './assessmentEditDialog';
 
 const Item = styled(Paper)(({ theme }) => ({
   ...theme.typography.body2,
@@ -21,8 +20,6 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 const AssessmentList = () => {
-  // const router = useRouter();
-  // const classes = useStyles();
   const dispatch = useDispatch();
 
   const assessmentCount: number = useSelector(
@@ -34,7 +31,7 @@ const AssessmentList = () => {
   );
   const userData: User = useSelector(selectUserInfo);
 
-  const [openCreateAssessmentDialog, setOpenCreateAssessmentDialog]: any = useState({});
+  const [openCreateAssessmentDialog, setOpenCreateAssessmentDialog]: any = useState(false);
   const [filter, setFilter] = useState({
     userId: 0,
     title: '',
@@ -70,7 +67,7 @@ const AssessmentList = () => {
                 filter={filter}
                 setFilter={setFilter}
                 handleCreateButton={() =>
-                  setOpenCreateAssessmentDialog({ open: true, action: CRUD_ACTIONS.create })
+                  setOpenCreateAssessmentDialog(true)
                 }
               />
             )}
@@ -94,6 +91,13 @@ const AssessmentList = () => {
       <Grid item lg={3} sm={12}>
         <Item>{userData && <Profile userData={userData} />}</Item>
       </Grid>
+
+      <AssessmentEditDialog
+        filter={filter}
+        needOpen={openCreateAssessmentDialog}
+        action={CRUD_ACTIONS.create}
+        handleClose={() => setOpenCreateAssessmentDialog(false)}
+      />
     </Grid>
   );
 };

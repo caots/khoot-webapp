@@ -119,9 +119,6 @@ const initialState = {
   isFetchingCreateAssessment: false,
   fetchCreateAssessmentMsg: null,
 
-  isFetchingCreateAssessmentImage: false,
-  fetchCreateAssessmentImageMsg: null,
-
   isFetchingUpdateAssessment: false,
   fetchUpdateAssessmentMsg: null,
 
@@ -142,7 +139,6 @@ export const assessmentSlice = createSlice({
           `isFetchingCreateAssessment`,
           `isFetchingUpdateAssessment`,
           `isFetchingUpdateStatusAssessment`,
-          `fetchUpdateStockMsg`,
           `fetchDeleteAssessmentMsg`
         ].includes(action.payload)
       ) {

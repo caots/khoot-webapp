@@ -18,58 +18,53 @@ const AssessmentToolbar = ({ filter, setFilter, handleCreateButton }: any) => {
 
   const resetFilter = () => {
     setCurFilter({ ...curFilter, ...initialFilter });
-    setFilter({ ...filter, ...initialFilter });
+    setFilter({ ...filter, ...initialFilter, userId: filter.userId });
   };
 
   const submitFilter = () => {
-    setFilter({ ...filter, ...curFilter });
-  }
+    setFilter({ ...filter, ...curFilter, userId: filter.userId });
+  };
 
   return (
-    <Box>
-      <Card>
-        <CardContent>
-          <Grid container spacing={3}>
-            <Grid item xs={6} md={6}>
+    <Card style={{boxShadow: 'none'}}>
+      <CardContent>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={10} spacing={3} container justifyContent="flex-start">
+            <Grid item sx={{ width: '60%' }}>
               <SearchTextField
                 placeholder="Search by title"
                 size="small"
-                value={curFilter.name}
+                value={curFilter.title}
                 onChange={(e: any) => setCurFilter({ ...curFilter, title: e.target.value })}
               />
             </Grid>
-            <Grid item xs={6} container spacing={3} justifyContent="flex-end">
-              <Grid item>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  endIcon={<FilterIcon />}
-                  onClick={submitFilter}
-                >
-                  Search
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button fullWidth variant="outlined" endIcon={<ClearIcon />} onClick={resetFilter}>
-                  Clear
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button
-                  fullWidth
-                  color="secondary"
-                  variant="contained"
-                  endIcon={<AddIcon />}
-                  onClick={handleCreateButton}
-                >
-                  Create
-                </Button>
-              </Grid>
+            <Grid item>
+              <Button fullWidth variant="contained" endIcon={<FilterIcon />} onClick={submitFilter}>
+                Search
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button fullWidth variant="outlined" endIcon={<ClearIcon />} onClick={resetFilter}>
+                Clear
+              </Button>
             </Grid>
           </Grid>
-        </CardContent>
-      </Card>
-    </Box>
+          <Grid item xs={12} md={2}>
+            <Grid item>
+              <Button
+                fullWidth
+                color="secondary"
+                variant="contained"
+                endIcon={<AddIcon />}
+                onClick={handleCreateButton}
+              >
+                Create
+              </Button>
+            </Grid>
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
 import DialogSelect from './dialogSelect';
+import AssessmentEditDialog from './assessmentEditDialog';
 import ConfirmDeleteDialog from 'src/components/customDialog';
 import {
   Paper,
@@ -25,12 +26,13 @@ import {
   DeleteTwoTone as DeleteIcon
 } from '@material-ui/icons';
 import Assessment from 'src/model/assessment';
-import { ASSESSMENT_STATUS } from 'src/config';
+import { ASSESSMENT_STATUS, CRUD_ACTIONS } from 'src/config';
 import { MESSAGES } from 'src/config/message';
 import {
   clearMsg,
   fetchDeleteAssessment,
-  fetchUpdateStatusAssessment
+  fetchUpdateStatusAssessment,
+  fetchGetAssessmentById
 } from 'src/features/assessment/assessmentSlice';
 
 const handleAssessmentStatus = (assessment: Assessment) => {
@@ -80,9 +82,18 @@ const AssessmentTable = (dataRef: any) => {
     (state: any) => state.assessmentSlice.fetchUpdateStatusAssessmentMsg
   );
 
+  const currentAssessment = useSelector(
+    (state: any) => state.assessmentSlice.currentAssessment
+  );
+  const isFetchingGetAssessmentById = useSelector(
+    (state: any) => state.assessmentSlice.isFetchingGetAssessmentById
+  );
+
+
   const [dataFocus, setDataFocus]: any = useState({});
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [openChangeStatusDialog, setOpenChangeStatusDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
 
   useEffect(() => {
     !isFetchingDeleteAssessment &&
@@ -114,11 +125,11 @@ const AssessmentTable = (dataRef: any) => {
   };
 
   const handleButtonEdit = (id: number) => {
-    // dispatch(fetchGetProductById({ productId }));
-    // setOpenEditDialog(true);
+    dispatch(fetchGetAssessmentById(id));
+    setOpenEditDialog(true);
   };
 
-  const handleButtonChangeStatus = (id: number, status: number) => {
+  const handleButtonChangeStatus = (id: number, status: any) => {
     setDataFocus({ id, status });
     setOpenChangeStatusDialog(true);
   };
@@ -145,13 +156,13 @@ const AssessmentTable = (dataRef: any) => {
           <Table stickyHeader aria-label="sticky table">
             <TableHead>
               <TableRow>
-                <TableCell>STT</TableCell>
-                <TableCell>Key tham gia</TableCell>
-                <TableCell>Tiêu đề</TableCell>
-                <TableCell>Số lượng câu hỏi</TableCell>
-                <TableCell>Thời gian</TableCell>
-                <TableCell>Trạng thái</TableCell>
-                <TableCell align="center">Thao tác</TableCell>
+                <TableCell>ID</TableCell>
+                <TableCell>Join key</TableCell>
+                <TableCell>Title</TableCell>
+                <TableCell>Number of questions</TableCell>
+                <TableCell>Times</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="center">Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -173,7 +184,7 @@ const AssessmentTable = (dataRef: any) => {
                           label={handledStatus.label}
                           color={handledStatus.color}
                           variant={handledStatus.variant}
-                          onClick={() => handleButtonChangeStatus(assessment.id, assessment.status)}
+                          onClick={() => handleButtonChangeStatus(assessment.id, assessment?.status)}
                         />
                       </TableCell>
                       <TableCell>
@@ -211,6 +222,16 @@ const AssessmentTable = (dataRef: any) => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
+
+      {openEditDialog && (
+        <AssessmentEditDialog
+          filter={filter}
+          needOpen={openEditDialog}
+          action={CRUD_ACTIONS.update}
+          handleClose={() => setOpenEditDialog(false)}
+          assessment={currentAssessment}
+        />
+      )}
 
       {openConfirmDialog && (
         <ConfirmDeleteDialog
