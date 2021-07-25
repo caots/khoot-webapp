@@ -27,3 +27,13 @@ export const CRUD_ACTIONS = {
   view: 3,
   delete: 4
 };
+
+export const QUESTION_TYPE = {
+  MULTICHOICE: 1,
+  TEXT: 2
+}
+
+export const SELECT_QUESTION_TYPE = [
+  {id: 1, title: 'Multi choice'},
+  {id: 2, title: 'Text area'},
+]

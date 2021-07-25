@@ -37,47 +37,41 @@ export const fetchGetAssessmentById = createAsyncThunk(
   }
 );
 
-// export const fetchCreateAssessment = createAsyncThunk(
-//   'product/fetchCreateProduct',
-//   async ({ product, filter }, { rejectWithValue }) => {
-//     try {
-//       const productResult = (
-//         await AssessmentApi.createProduct({ product, token: cookies.get('token') })
-//       ).data;
-//       const productResults = (
-//         await AssessmentApi.getAllProducts({
-//           ...filter,
-//           token: cookies.get('token')
-//         })
-//       ).data;
+export const fetchCreateAssessment = createAsyncThunk(
+  'assessment/fetchCreateAssessment',
+  async ({ asessment, filter }: any, { rejectWithValue }) => {
+    try {
+      const assessmentResult = (
+        await AssessmentApi.createAssessment(asessment, getToken(STORAGE_KEY.ACCESS_TOKEN))
+      );
+      const assessmentResults = await AssessmentApi.getAllAssessment(
+        filter,
+        getToken(STORAGE_KEY.ACCESS_TOKEN)
+      );
+      return { currentAssessment: assessmentResult.data, data: assessmentResults.data };
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.response || error);
+    }
+  }
+);
 
-//       return { currentProduct: productResult, products: productResults };
-//     } catch (error) {
-//       return rejectWithValue(error?.response?.data?.message || error?.response || error);
-//     }
-//   }
-// );
-
-// export const fetchUpdateAssessment = createAsyncThunk(
-//   'product/fetchUpdateProduct',
-//   async ({ product, filter }, { rejectWithValue }) => {
-//     try {
-//       const productResult = (
-//         await AssessmentApi.updateProduct({ product, token: cookies.get('token') })
-//       ).data;
-//       const productResults = (
-//         await AssessmentApi.getAllProducts({
-//           ...filter,
-//           token: cookies.get('token')
-//         })
-//       ).data;
-
-//       return { currentProduct: productResult, products: productResults };
-//     } catch (error) {
-//       return rejectWithValue(error?.response?.data?.message || error?.response || error);
-//     }
-//   }
-// );
+export const fetchUpdateAssessment = createAsyncThunk(
+  'assessment/fetchUpdateAssessment',
+  async ({ asessment, filter }: any, { rejectWithValue }) => {
+    try {
+      const assessmentResult = (
+        await AssessmentApi.updateAssessment(asessment, getToken(STORAGE_KEY.ACCESS_TOKEN))
+      );
+      const assessmentResults = await AssessmentApi.getAllAssessment(
+        filter,
+        getToken(STORAGE_KEY.ACCESS_TOKEN)
+      );
+      return { currentAssessment: assessmentResult.data, data: assessmentResults.data };
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.response || error);
+    }
+  }
+);
 
 export const fetchUpdateStatusAssessment = createAsyncThunk(
   'assessment/fetchUpdateStatusAssessment',
@@ -139,7 +133,10 @@ export const assessmentSlice = createSlice({
           `isFetchingCreateAssessment`,
           `isFetchingUpdateAssessment`,
           `isFetchingUpdateStatusAssessment`,
-          `fetchDeleteAssessmentMsg`
+          `fetchUpdateStatusAssessmentMsg`,
+          `fetchDeleteAssessmentMsg`,
+          `fetchCreateAssessmentMsg`,
+          `fetchUpdateAssessmentMsg`,
         ].includes(action.payload)
       ) {
         state[action.payload] = null;
@@ -178,39 +175,39 @@ export const assessmentSlice = createSlice({
         state.currentAssessment = action.payload;
       })
 
-      // // Handle create assessment
-      // .addCase(fetchCreateProduct.rejected, (state, action) => {
-      //   state.fetchCreateProductMsg = action.payload || action.error.message;
-      //   state.isFetchingCreateProduct = false;
-      // })
-      // .addCase(fetchCreateProduct.pending, (state) => {
-      //   state.fetchCreateProductMsg = null;
-      //   state.isFetchingCreateProduct = true;
-      // })
-      // .addCase(fetchCreateProduct.fulfilled, (state, action) => {
-      //   state.fetchCreateProductMsg = MESSAGES.CREATE_SUCCESS;
-      //   state.isFetchingCreateProduct = false;
-      //   state.currentProduct = action.payload.currentProduct;
-      //   state.products = action.payload.products.results;
-      //   state.productsCount = action.payload.products.total;
-      // })
+      // Handle create assessment
+      .addCase(fetchCreateAssessment.rejected, (state: any, action) => {
+        state.fetchCreateAssessmentMsg = action.payload || action.error.message;
+        state.isFetchingCreateAssessment = false;
+      })
+      .addCase(fetchCreateAssessment.pending, (state: any) => {
+        state.fetchCreateAssessmentMsg = null;
+        state.isFetchingCreateAssessment = true;
+      })
+      .addCase(fetchCreateAssessment.fulfilled, (state: any, action: any) => {
+        state.fetchCreateAssessmentMsg = MESSAGES.CREATE_SUCCESS;
+        state.isFetchingCreateAssessment = false;
+        state.currentProduct = action.payload.currentProduct;
+        state.assessments = action.payload.data.results;
+        state.assessmentCount = action.payload.data.total;
+      })
 
-      // // Handle update assessment
-      // .addCase(fetchUpdateProduct.rejected, (state, action) => {
-      //   state.fetchUpdateProductMsg = action.payload || action.error.message;
-      //   state.isFetchingUpdateProduct = false;
-      // })
-      // .addCase(fetchUpdateProduct.pending, (state) => {
-      //   state.fetchUpdateProductMsg = null;
-      //   state.isFetchingUpdateProduct = true;
-      // })
-      // .addCase(fetchUpdateProduct.fulfilled, (state, action) => {
-      //   state.fetchUpdateProductMsg = MESSAGES.UPDATE_SUCCESS;
-      //   state.isFetchingUpdateProduct = false;
-      //   state.currentProduct = action.payload.currentProduct;
-      //   state.products = action.payload.products.results;
-      //   state.productsCount = action.payload.products.total;
-      // })
+      // Handle update assessment
+      .addCase(fetchUpdateAssessment.rejected, (state: any, action) => {
+        state.fetchUpdateAssessmentMsg = action.payload || action.error.message;
+        state.isFetchingUpdateAssessment = false;
+      })
+      .addCase(fetchUpdateAssessment.pending, (state: any) => {
+        state.fetchUpdateAssessmentMsg = null;
+        state.isFetchingUpdateAssessment = true;
+      })
+      .addCase(fetchUpdateAssessment.fulfilled, (state: any, action: any) => {
+        state.fetchUpdateAssessmentMsg = MESSAGES.UPDATE_SUCCESS;
+        state.isFetchingUpdateAssessment = false;
+        state.currentProduct = action.payload.currentProduct;
+        state.assessments = action.payload.data.results;
+        state.assessmentCount = action.payload.data.total;
+      })
 
       // Handle update status assessment
       .addCase(fetchUpdateStatusAssessment.rejected, (state: any, action) => {

@@ -2,6 +2,7 @@ import { axiosMethod, axiosRequest, makeQuery } from 'src/utils/handleRequestSer
 import { REACT_APP_API_ENDPOINT } from 'src/config';
 import _ from 'lodash';
 import SearchAssessment from 'src/model/searchParams';
+import Assessment from 'src/model/assessment';
 
 class AssessmentApi {
   assessmentApiEndpoint: string;
@@ -24,49 +25,23 @@ class AssessmentApi {
     );
   }
 
-  // createProduct({ product, token }) {
-  //   return axiosRequest(
-  //     this.productApiEndpoint + `/`,
-  //     axiosMethod.POST,
-  //     token,
-  //     _.omit(
-  //       {
-  //         ...product,
-  //         web_price: product.webPrice,
-  //         category_id: product.categoryId,
-  //         out_of_stock: 0
-  //       },
-  //       ['webPrice', 'categoryId']
-  //     )
-  //   );
-  // }
+  createAssessment(asessment: Assessment, token: string) {
+    return axiosRequest(
+      this.assessmentApiEndpoint + `/`,
+      axiosMethod.POST,
+      token,
+      asessment
+    );
+  }
 
-  // updateProduct({ product, token }) {
-  //   return axiosRequest(
-  //     this.productApiEndpoint + `/`,
-  //     axiosMethod.PUT,
-  //     token,
-  //     _.omit(
-  //       {
-  //         ...product,
-  //         web_price: product.webPrice,
-  //         category_id: product.categoryId
-  //       },
-  //       [
-  //         'webPrice',
-  //         'categoryId',
-  //         'product_category_name',
-  //         'updated_at',
-  //         'created_at',
-  //         'number_of_likes',
-  //         'viewd',
-  //         'is_deleted',
-  //         'type',
-  //         'images'
-  //       ]
-  //     )
-  //   );
-  // }
+  updateAssessment(asessment: Assessment, token: string) {
+    return axiosRequest(
+      this.assessmentApiEndpoint + `/`,
+      axiosMethod.PUT,
+      token,
+      asessment
+    );
+  }
 
   updateStatus(assessment: any, token: string) {
     return axiosRequest(this.assessmentApiEndpoint + `/status`, axiosMethod.PUT, token, {

@@ -10,10 +10,11 @@ import {
   Card,
   Select,
   InputLabel,
-  OutlinedInput,
-  Checkbox,
+  FormControl,
+  MenuItem,
   CardContent,
-  CardMedia,
+  RadioGroup,
+  Radio,
   AppBar,
   Toolbar,
   Typography,
@@ -21,14 +22,20 @@ import {
   Slide,
   InputAdornment,
   Backdrop,
+  FormControlLabel,
   CircularProgress
 } from '@material-ui/core';
 import { StopRounded as SquareIcon, Close as CloseIcon } from '@material-ui/icons';
+import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import { useSelector, useDispatch } from 'react-redux';
-import { clearMsg } from 'src/features/assessment/assessmentSlice';
-import { CRUD_ACTIONS } from 'src/config';
+import {
+  clearMsg,
+  fetchCreateAssessment,
+  fetchUpdateAssessment
+} from 'src/features/assessment/assessmentSlice';
+import { CRUD_ACTIONS, QUESTION_TYPE, SELECT_QUESTION_TYPE } from 'src/config';
 import { MESSAGES } from 'src/config/message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -39,6 +46,28 @@ import Assessment, { Question } from 'src/model/assessment';
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} />;
 });
+
+const QuestionAnswer = (props: any) => {
+  let question: Question = props.question;
+  let index: number = props.index;
+  return (
+    <Box sx={{ display: 'flex' }}>
+      <FormControlLabel value={index} control={<Radio />} label={''} />{' '}
+      <TextField
+        fullWidth
+        style={{ width: '100%' }}
+        margin="normal"
+        label="Title Answer"
+        required
+        defaultValue={question?.full_answers && question.full_answers[index]?.title}
+        onChange={(e: any) => {
+          question.full_answers[index].title = e.target.value;
+        }}
+        variant="outlined"
+      />
+    </Box>
+  );
+};
 
 const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filter }: any) => {
   const dispatch = useDispatch();
@@ -57,10 +86,35 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
   );
   // local state
   const [msg, setMsg] = useState('');
-  const [questions, setQuestion]: any = useState([]);
+  const [questions, setQuestion]: any = useState([
+    {
+      title: '',
+      type: QUESTION_TYPE.MULTICHOICE,
+      answers: [{ title: '' }, { title: '' }, { title: '' }, { title: '' }],
+      full_answers: [
+        { title: '', status: true },
+        { title: '', status: false },
+        { title: '', status: false },
+        { title: '', status: false }
+      ],
+      point: 0,
+      image: ''
+    } as Question
+  ]);
 
   useEffect(() => {
-    if (assessment) setQuestion(assessment.questions);
+    if (assessment) {
+      const listQuestion = [...assessment.questions];
+      listQuestion.forEach((question: Question, index: number) => {
+        listQuestion[index] = Object.assign({}, question, {
+          answers: JSON.parse(question.answers)
+        });
+        listQuestion[index] = Object.assign({}, question, {
+          full_answers: JSON.parse(question.full_answers)
+        });
+      });
+      setQuestion(listQuestion);
+    }
   }, [assessment]);
 
   const successMsg =
@@ -68,42 +122,128 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
   const msgName =
     action === CRUD_ACTIONS.create ? `fetchCreateAssessmentMsg` : `fetchUpdateAssessmentMsg`;
 
-  const handleFormSubmit = (data: any, formik: any) => {
-    const newAssessment = { ...data, number_of_question: data.questions.length };
-    console.log('====================================');
-    console.log(data);
-    console.log('====================================');
-    if (action === CRUD_ACTIONS.create) {
-      //dispatch(fetchCreateProduct({ product: data, filter }));
-    } else if (action === CRUD_ACTIONS.update) {
-      //dispatch(fetchUpdateProduct({ product: { ...data, id: product?.id }, filter }));
-    }
-  };
-
   useEffect(() => {
     setMsg(action === CRUD_ACTIONS.create ? fetchCreateAssessmentMsg : fetchUpdateAssessmentMsg);
   }, [action, fetchCreateAssessmentMsg, fetchUpdateAssessmentMsg]);
 
   // Display toast on save
   useEffect(() => {
-    ((!isFetchingCreateAssessment && !!fetchCreateAssessmentMsg) ||
-      (!isFetchingUpdateAssessment && !!fetchUpdateAssessmentMsg)) &&
+    if (
+      (!isFetchingCreateAssessment && fetchCreateAssessmentMsg) ||
+      (!isFetchingUpdateAssessment && fetchUpdateAssessmentMsg)
+    ) {
       displayToast(
         msg,
         successMsg,
         () => handleClose(),
         () => dispatch(clearMsg(msgName))
       );
+    }
   }, [
     dispatch,
     fetchCreateAssessmentMsg,
     fetchUpdateAssessmentMsg,
     isFetchingCreateAssessment,
-    isFetchingUpdateAssessment,
     msg,
-    msgName,
     successMsg
   ]);
+
+  const changeTypeQuestion = (type: any, question: Question) => {
+    console.log(question);
+    console.log(type);
+  };
+
+  // const changeTitleQuestion = (title: any, question: Question) => {
+  //   question.title = title;
+  //   let listQuestion = [...questions];
+  //   const index = listQuestion.findIndex((qs) => qs.id === question.id);
+  //   listQuestion[index] = question;
+  //   setQuestion(listQuestion);
+  // };
+
+  // const changePointQuestion = (point: any, question: Question) => {
+  //   question.point = point;
+  //   let listQuestion = [...questions];
+  //   const index = listQuestion.findIndex((qs) => qs.id === question.id);
+  //   listQuestion[index] = question;
+  //   setQuestion(listQuestion);
+  // };
+
+  const handleChangeSelectAnswer = (checked: any, question: Question) => {
+    question.full_answers.map((ans: any, index: number) => {
+      if (index === Number.parseInt(checked)) question.full_answers[index].status = true;
+      else question.full_answers[index].status = false;
+    });
+    let listQuestion = [...questions];
+    const index = listQuestion.findIndex((qs) => qs.id === question.id);
+    listQuestion[index] = question;
+    //setQuestion(listQuestion);
+  };
+
+  const addNewQuestion = () => {
+    const newQuestion = {
+      title: '',
+      type: QUESTION_TYPE.MULTICHOICE,
+      answers: [{ title: '' }, { title: '' }, { title: '' }, { title: '' }],
+      full_answers: [
+        { title: '', status: true },
+        { title: '', status: false },
+        { title: '', status: false },
+        { title: '', status: false }
+      ],
+      point: 0,
+      image: ''
+    } as Question;
+
+    setQuestion([...questions, newQuestion]);
+  };
+
+  const removeQuestion = (question: Question, index: number) => {
+    if (questions.length <= 1) return;
+    let listQuestion = [...questions];
+    if (index >= 0) listQuestion.splice(index, 1);
+    setQuestion(listQuestion);
+  };
+
+  const handleFormSubmit = (data: any, formik: any) => {
+    const questionsSave = [...questions];
+    questionsSave.map((question: Question, index: number) => {
+      let answers: any = [];
+      question.full_answers.forEach((ans: any) => {
+        answers.push({ title: ans.title });
+      });
+      questionsSave[index] = question;
+      question.answers = JSON.stringify(answers);
+      question.full_answers = JSON.stringify(question.full_answers);
+    });
+    const newAssessment = {
+      ...data,
+      number_of_question: questionsSave.length,
+      questions: questionsSave
+    };
+    if (action === CRUD_ACTIONS.create) {
+      newAssessment.user_id = filter.userId;
+      dispatch(fetchCreateAssessment({ asessment: newAssessment, filter }));
+    } else if (action === CRUD_ACTIONS.update) {
+      delete newAssessment.is_deleted;
+      newAssessment.questions.forEach((question: Question, index: number) => {
+        delete question.id;
+        delete question.created_at;
+        delete question.updated_at;
+      });
+      dispatch(fetchUpdateAssessment({ asessment: newAssessment, filter }));
+    }
+  };
+
+  const checkValueSelect = (question: Question) => {
+    if (!question?.full_answers) return 0;
+    if (typeof question?.full_answers == 'string') {
+      question.answers = JSON.parse(question.answers);
+      question.full_answers = JSON.parse(question.full_answers);
+    }
+    const index = question.full_answers.findIndex((ans: any) => ans.status === true);
+    return index || 0;
+  };
 
   const CustomFormik = ({ initialValues }: any) => {
     const formatedInitialValues = _.omit(
@@ -113,217 +253,222 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
       ['updated_at', 'created_at', 'join_key', 'status']
     );
     return (
-      <Formik
-        initialValues={formatedInitialValues}
-        validationSchema={Yup.object().shape({
-          title: Yup.string().max(255, `Title is too long`).required(`Title is required`),
-          time: Yup.number().integer(`Time is not correct`).required(`Time is required`)
-        })}
-        onSubmit={handleFormSubmit}
-      >
-        {({
-          errors,
-          handleBlur,
-          handleChange,
-          handleSubmit,
-          isSubmitting,
-          touched,
-          values
-        }: any) => (
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="Title assessment"
-                  name="title"
-                  error={Boolean(touched.title && errors.title)}
-                  helperText={touched.title && errors.title}
-                  onBlur={handleBlur}
-                  onChange={handleChange}
-                  required
-                  value={values.title}
-                  variant="outlined"
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="Time"
-                  name="time"
-                  type="number"
-                  error={Boolean(touched.time && errors.time)}
-                  helperText={touched.time && errors.time}
-                  onBlur={handleBlur}
-                  onChange={handleChange}
-                  required
-                  value={values.time}
-                  variant="outlined"
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">Minus: </InputAdornment>
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={12}>
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="Description"
-                  name="description"
-                  type="text"
-                  multiline
-                  rows={12}
-                  onBlur={handleBlur}
-                  onChange={handleChange}
-                  value={values.description}
-                  variant="outlined"
-                />
-              </Grid>
-
-              <Typography
-                style={{ margin: '30px' }}
-                sx={{ fontSize: 20 }}
-                color="text.secondary"
-                gutterBottom
-              >
-                Questions
-              </Typography>
-              {questions.lenght > 0 ? (
-                questions.map((question: Question, index: number) => (
-                  <Grid container spacing={3} style={{ margin: '30px', marginTop: '10px' }}>
-                    <Box sx={{ width: '80%' }}>
-                      <Card variant="outlined">
-                        <CardContent>
-                          <Grid container spacing={3}>
-                            <Grid item xs={6} md={9}>
-                              <TextField
-                                fullWidth
-                                margin="normal"
-                                label="Title Question"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                required
-                                value={question.title}
-                                variant="outlined"
-                              />
-                            </Grid>
-
-                            <Grid item xs={6} md={3}>
-                              <TextField
-                                fullWidth
-                                margin="normal"
-                                label="Weight"
-                                name="point"
-                                type="number"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                required
-                                value={question.point}
-                                variant="outlined"
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={12}>
-                              <CardMedia
-                                sx={{
-                                  height: 0,
-                                  paddingTop: '56.25%'
-                                }}
-                                image="https://next.material-ui.com/static/images/cards/paella.jpg"
-                                title="image question"
-                              />
-                            </Grid>
-                          </Grid>
-                        </CardContent>
-                      </Card>
-                    </Box>
-                    <IconButton
-                      aria-label="create question"
-                      style={{ marginLeft: '30px', height: 'max-content' }}
-                    >
-                      <AddCircleOutlineIcon sx={{ fontSize: 40 }} />
-                    </IconButton>
+      <>
+        <Formik
+          initialValues={formatedInitialValues}
+          validationSchema={Yup.object().shape({
+            title: Yup.string().max(255, `Title is too long`).required(`Title is required`),
+            time: Yup.number().integer(`Time is not correct`).required(`Time is required`)
+          })}
+          onSubmit={handleFormSubmit}
+        >
+          {({
+            errors,
+            handleBlur,
+            handleChange,
+            handleSubmit,
+            isSubmitting,
+            touched,
+            values
+          }: any) => (
+            <form onSubmit={handleSubmit}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Title assessment"
+                    name="title"
+                    error={Boolean(touched.title && errors.title)}
+                    helperText={touched.title && errors.title}
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    required
+                    value={values.title}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Time"
+                    name="time"
+                    type="number"
+                    error={Boolean(touched.time && errors.time)}
+                    helperText={touched.time && errors.time}
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    required
+                    value={values.time}
+                    variant="outlined"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">Minus: </InputAdornment>
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={12}>
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Description"
+                    name="description"
+                    type="text"
+                    multiline
+                    rows={12}
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    value={values.description}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item container spacing={3} justifyContent="flex-start">
+                  <Grid item>
+                    <Button onClick={handleClose}>Cancel</Button>
                   </Grid>
-                ))
-              ) : (
-                <Grid container spacing={3} style={{ margin: '30px', marginTop: '10px' }}>
-                  <Box sx={{ width: '80%' }}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Grid container spacing={3}>
-                          <Grid item xs={6} md={9}>
-                            <TextField
-                              fullWidth
-                              margin="normal"
-                              label="Title Question"
-                              onBlur={handleBlur}
-                              onChange={handleChange}
-                              required
-                              value={''}
-                              variant="outlined"
-                            />
-                          </Grid>
+                  <Grid item>
+                    <Button type="submit" variant="contained">
+                      Save
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </form>
+          )}
+        </Formik>
+        <Typography
+          style={{ marginTop: '30px' }}
+          sx={{ fontSize: 20 }}
+          color="text.secondary"
+          gutterBottom
+        >
+          Questions
+        </Typography>
+        {questions &&
+          questions.map((question: Question, index: number) => (
+            <Grid key={index} container spacing={3} style={{ marginTop: '10px' }}>
+              <Grid item xs={6} md={9}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Grid container spacing={3}>
+                      <Grid item xs={6} md={9}>
+                        <TextField
+                          fullWidth
+                          margin="normal"
+                          label="Title Question"
+                          onChange={(e: any) => {
+                            question.title = e.target.value;
+                          }}
+                          required
+                          defaultValue={question.title}
+                          variant="outlined"
+                        />
+                      </Grid>
 
-                          <Grid item xs={6} md={3}>
-                            <TextField
-                              fullWidth
-                              margin="normal"
-                              label="Weight"
-                              name="point"
-                              type="number"
-                              onBlur={handleBlur}
-                              onChange={handleChange}
-                              required
-                              value={0}
-                              variant="outlined"
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={12}>
-                            <CardMedia
-                              sx={{
-                                height: 0,
-                                paddingTop: '56.25%'
-                              }}
-                              image=""
-                              title="image question"
-                            />
-                          </Grid>
-                        </Grid>
-                      </CardContent>
-                    </Card>
-                  </Box>
-                  <IconButton
-                    aria-label="create question"
-                    style={{ marginLeft: '30px', height: 'max-content' }}
+                      <Grid item xs={6} md={3}>
+                        <TextField
+                          fullWidth
+                          margin="normal"
+                          label="Weight"
+                          type="number"
+                          onChange={(e: any) => {
+                            question.point = e.target.value;
+                          }}
+                          required
+                          defaultValue={question.point}
+                          variant="outlined"
+                        />
+                      </Grid>
+                      <Grid
+                        item
+                        xs={12}
+                        md={12}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          position: 'relative'
+                        }}
+                      >
+                        <IconButton
+                          aria-label="add image"
+                          style={{ position: 'absolute', right: '5px' }}
+                        >
+                          <NoteAddIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                        <div>
+                          <img
+                            src={question.image}
+                            width="100%"
+                          />
+                        </div>
+                      </Grid>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={12}
+                      md={12}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        position: 'relative',
+                        marginTop: '30px'
+                      }}
+                    >
+                      <FormControl component="fieldset" style={{ width: '100%' }}>
+                        <RadioGroup
+                          aria-label="gender"
+                          name="controlled-radio-buttons-group"
+                          defaultValue={checkValueSelect(question)}
+                          onChange={(event: any) =>
+                            handleChangeSelectAnswer(event.target.value, question)
+                          }
+                        >
+                          <QuestionAnswer question={question} index={0} />
+                          <QuestionAnswer question={question} index={1} />
+                          <QuestionAnswer question={question} index={2} />
+                          <QuestionAnswer question={question} index={3} />
+                        </RadioGroup>
+                      </FormControl>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                {/* <FormControl sx={{ marginLeft: '20px', minWidth: 150 }}>
+                  <InputLabel id="demo-simple-select-autowidth-label">Type</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-autowidth-label"
+                    id="demo-simple-select-autowidth"
+                    onChange={(e: any) => changeTypeQuestion(e.target.value, question)}
+                    autoWidth
+                    label="Type"
                   >
-                    <AddCircleOutlineIcon sx={{ fontSize: 40 }} />
-                  </IconButton>
-                  <IconButton
-                    aria-label="create question"
-                    style={{ marginLeft: '10px', height: 'max-content' }}
-                  >
-                    <RemoveCircleOutlineIcon sx={{ fontSize: 40 }} />
-                  </IconButton>
-                </Grid>
-              )}
-
-              <Grid item container spacing={3} justifyContent="flex-end">
-                <Grid item>
-                  <Button onClick={handleClose}>Cancel</Button>
-                </Grid>
-                <Grid item>
-                  <Button type="submit" variant="contained">
-                    Save
-                  </Button>
-                </Grid>
+                    {SELECT_QUESTION_TYPE.map((data) => (
+                      <MenuItem value={data.id}>{data.title}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl> */}
+                <IconButton
+                  aria-label="create question"
+                  style={{
+                    marginLeft: '0px',
+                    height: 'max-content'
+                  }}
+                  onClick={addNewQuestion}
+                >
+                  <AddCircleOutlineIcon sx={{ fontSize: 40 }} />
+                </IconButton>
+                <IconButton
+                  aria-label="create question"
+                  style={{ marginLeft: '10px', height: 'max-content' }}
+                  onClick={() => removeQuestion(question, index)}
+                >
+                  <RemoveCircleOutlineIcon sx={{ fontSize: 40 }} />
+                </IconButton>
               </Grid>
             </Grid>
-          </form>
-        )}
-      </Formik>
+          ))}
+      </>
     );
   };
 

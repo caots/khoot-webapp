@@ -7,7 +7,7 @@ import { selectUserInfo } from 'src/features/authen/authenSlice';
 import { PAGE_SIZE, CRUD_ACTIONS } from 'src/config';
 import SearchAssessment from 'src/model/searchParams';
 import AssessmentToolbar from './assessmentToolbar';
-import { fetchGetAllAssessment } from 'src/features/assessment/assessmentSlice';
+import { clearMsg, fetchGetAllAssessment } from 'src/features/assessment/assessmentSlice';
 import Assessment from 'src/model/assessment';
 import User from 'src/model/user';
 import AssessmentEditDialog from './assessmentEditDialog';
@@ -66,9 +66,11 @@ const AssessmentList = () => {
               <AssessmentToolbar
                 filter={filter}
                 setFilter={setFilter}
-                handleCreateButton={() =>
-                  setOpenCreateAssessmentDialog(true)
-                }
+                handleCreateButton={() => {
+                  dispatch(clearMsg(`fetchCreateAssessmentMsg`));
+                  dispatch(clearMsg(`fetchUpdateAssessmentMsg`));
+                  setOpenCreateAssessmentDialog(true);
+                }}
               />
             )}
             <Box sx={{ pt: 3 }}>

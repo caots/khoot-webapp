@@ -17,8 +17,8 @@ export interface Question {
   id?: number;
   title: string;
   type: number;
-  answers?: string;
-  full_answers?: string;
+  answers?: any;
+  full_answers?: any;
   point: number;
   updated_at?: string;
   created_at?: string;

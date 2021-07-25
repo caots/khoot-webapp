@@ -4,6 +4,8 @@ import { makeStyles } from '@material-ui/styles';
 import DialogSelect from './dialogSelect';
 import AssessmentEditDialog from './assessmentEditDialog';
 import ConfirmDeleteDialog from 'src/components/customDialog';
+import ContentCopyIcon from '@material-ui/icons/ContentCopy';
+
 import {
   Paper,
   Typography,
@@ -25,14 +27,15 @@ import {
   EditTwoTone as EditIcon,
   DeleteTwoTone as DeleteIcon
 } from '@material-ui/icons';
-import Assessment from 'src/model/assessment';
+import Assessment, { Question } from 'src/model/assessment';
 import { ASSESSMENT_STATUS, CRUD_ACTIONS } from 'src/config';
 import { MESSAGES } from 'src/config/message';
 import {
   clearMsg,
   fetchDeleteAssessment,
   fetchUpdateStatusAssessment,
-  fetchGetAssessmentById
+  fetchGetAssessmentById,
+  fetchCreateAssessment
 } from 'src/features/assessment/assessmentSlice';
 
 const handleAssessmentStatus = (assessment: Assessment) => {
@@ -81,19 +84,30 @@ const AssessmentTable = (dataRef: any) => {
   const fetchUpdateStatusAssessmentMsg = useSelector(
     (state: any) => state.assessmentSlice.fetchUpdateStatusAssessmentMsg
   );
-
-  const currentAssessment = useSelector(
-    (state: any) => state.assessmentSlice.currentAssessment
+  const isFetchingCreateAssessment = useSelector(
+    (state: any) => state.assessmentSlice.isFetchingCreateAssessment
   );
+  const fetchCreateAssessmentMsg = useSelector(
+    (state: any) => state.assessmentSlice.fetchCreateAssessmentMsg
+  );
+
+  const currentAssessment = useSelector((state: any) => state.assessmentSlice.currentAssessment);
   const isFetchingGetAssessmentById = useSelector(
     (state: any) => state.assessmentSlice.isFetchingGetAssessmentById
   );
-
 
   const [dataFocus, setDataFocus]: any = useState({});
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [openChangeStatusDialog, setOpenChangeStatusDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+
+  useEffect(() => {
+    !isFetchingDeleteAssessment &&
+      !!isFetchingCreateAssessment &&
+      displayToast(fetchCreateAssessmentMsg, MESSAGES.ADD_SUCCESS, null, () =>
+        dispatch(clearMsg(`fetchCreateAssessmentMsg`))
+      );
+  }, [dispatch, fetchCreateAssessmentMsg, isFetchingCreateAssessment]);
 
   useEffect(() => {
     !isFetchingDeleteAssessment &&
@@ -119,12 +133,32 @@ const AssessmentTable = (dataRef: any) => {
     setFilter((parentFilter: any) => ({ ...parentFilter, pageSize: event.target.value, page: 0 }));
   };
 
-  const handleButtonView = (id: number) => {
-    // dispatch(fetchGetProductById({ productId }));
-    // setOpenDetailDialog(true);
+  const handleButtonDupplicate = (assessment: Assessment) => {
+    let assessmentDupplicate: any = { ...assessment };
+    delete assessmentDupplicate.is_deleted;
+    delete assessmentDupplicate.id;
+    delete assessmentDupplicate.updated_at;
+    delete assessmentDupplicate.created_at;
+    let questionDups: any[] = [];
+    assessmentDupplicate.questions.map((ques: Question, index: number) => {
+      let question = {
+        title: ques.title,
+        answers: ques.answers,
+        assessment_id: ques.assessment_id,
+        full_answers: ques.full_answers,
+        image: ques.image,
+        point: ques.point,
+        type: ques.type
+      };
+      questionDups.push(question);
+    });
+    assessmentDupplicate.questions = questionDups;
+    dispatch(fetchCreateAssessment({ asessment: assessmentDupplicate, filter }));
   };
 
   const handleButtonEdit = (id: number) => {
+    dispatch(clearMsg(`fetchCreateAssessmentMsg`));
+    dispatch(clearMsg(`fetchUpdateAssessmentMsg`));
     dispatch(fetchGetAssessmentById(id));
     setOpenEditDialog(true);
   };
@@ -152,7 +186,7 @@ const AssessmentTable = (dataRef: any) => {
   return (
     <>
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 500 }}>
+        <TableContainer sx={{ maxHeight: 800 }}>
           <Table stickyHeader aria-label="sticky table">
             <TableHead>
               <TableRow>
@@ -184,14 +218,16 @@ const AssessmentTable = (dataRef: any) => {
                           label={handledStatus.label}
                           color={handledStatus.color}
                           variant={handledStatus.variant}
-                          onClick={() => handleButtonChangeStatus(assessment.id, assessment?.status)}
+                          onClick={() =>
+                            handleButtonChangeStatus(assessment.id, assessment?.status)
+                          }
                         />
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" alignItems="center" spacing={0.5}>
-                          <Tooltip title="view">
-                            <IconButton onClick={() => handleButtonView(assessment.id)}>
-                              <ViewIcon color="info" />
+                          <Tooltip title="dupllicate">
+                            <IconButton onClick={() => handleButtonDupplicate(assessment)}>
+                              <ContentCopyIcon color="info" />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="edit">
