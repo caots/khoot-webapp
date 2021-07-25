@@ -9,7 +9,7 @@ import {
   Box,
   Card,
   Select,
-  InputLabel,
+  Input,
   FormControl,
   MenuItem,
   CardContent,
@@ -27,6 +27,7 @@ import {
 } from '@material-ui/core';
 import { StopRounded as SquareIcon, Close as CloseIcon } from '@material-ui/icons';
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
+import { getToken } from 'src/utils/authService';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import { useSelector, useDispatch } from 'react-redux';
@@ -35,13 +36,14 @@ import {
   fetchCreateAssessment,
   fetchUpdateAssessment
 } from 'src/features/assessment/assessmentSlice';
-import { CRUD_ACTIONS, QUESTION_TYPE, SELECT_QUESTION_TYPE } from 'src/config';
+import { CRUD_ACTIONS, QUESTION_TYPE, SELECT_QUESTION_TYPE, STORAGE_KEY } from 'src/config';
 import { MESSAGES } from 'src/config/message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { displayToast } from 'src/utils/commonService';
 import _ from 'lodash';
 import Assessment, { Question } from 'src/model/assessment';
+import AssessmentApi from 'src/features/assessment/assessmentApi';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} />;
@@ -86,6 +88,7 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
   );
   // local state
   const [msg, setMsg] = useState('');
+  const [uploadedImage, setUploadedImage]: any[] = useState([]);
   const [questions, setQuestion]: any = useState([
     {
       title: '',
@@ -105,6 +108,8 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
   useEffect(() => {
     if (assessment) {
       const listQuestion = [...assessment.questions];
+      let images: any[] = [...uploadedImage];
+    
       listQuestion.forEach((question: Question, index: number) => {
         listQuestion[index] = Object.assign({}, question, {
           answers: JSON.parse(question.answers)
@@ -112,7 +117,9 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
         listQuestion[index] = Object.assign({}, question, {
           full_answers: JSON.parse(question.full_answers)
         });
+        images[index] = question.image;
       });
+      setUploadedImage(images);
       setQuestion(listQuestion);
     }
   }, [assessment]);
@@ -148,26 +155,14 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
     successMsg
   ]);
 
-  const changeTypeQuestion = (type: any, question: Question) => {
-    console.log(question);
-    console.log(type);
+  const handleAddImage = async (e: any, index: number) => {
+    const imgUrl = (
+      await AssessmentApi.uploadImage(e.target.files[0], getToken(STORAGE_KEY.ACCESS_TOKEN))
+    ).data?.url;
+    let images: any[] = [...uploadedImage];
+    images[index] = imgUrl;
+    setUploadedImage(images);
   };
-
-  // const changeTitleQuestion = (title: any, question: Question) => {
-  //   question.title = title;
-  //   let listQuestion = [...questions];
-  //   const index = listQuestion.findIndex((qs) => qs.id === question.id);
-  //   listQuestion[index] = question;
-  //   setQuestion(listQuestion);
-  // };
-
-  // const changePointQuestion = (point: any, question: Question) => {
-  //   question.point = point;
-  //   let listQuestion = [...questions];
-  //   const index = listQuestion.findIndex((qs) => qs.id === question.id);
-  //   listQuestion[index] = question;
-  //   setQuestion(listQuestion);
-  // };
 
   const handleChangeSelectAnswer = (checked: any, question: Question) => {
     question.full_answers.map((ans: any, index: number) => {
@@ -177,7 +172,7 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
     let listQuestion = [...questions];
     const index = listQuestion.findIndex((qs) => qs.id === question.id);
     listQuestion[index] = question;
-    //setQuestion(listQuestion);
+    setQuestion(listQuestion);
   };
 
   const addNewQuestion = () => {
@@ -194,14 +189,19 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
       point: 0,
       image: ''
     } as Question;
-
+    setUploadedImage([...uploadedImage, '']);
     setQuestion([...questions, newQuestion]);
   };
 
   const removeQuestion = (question: Question, index: number) => {
     if (questions.length <= 1) return;
     let listQuestion = [...questions];
-    if (index >= 0) listQuestion.splice(index, 1);
+    let images = [...uploadedImage];
+    if (index >= 0){
+      listQuestion.splice(index, 1);
+      images.splice(index, 1);
+    }
+    setUploadedImage(images);
     setQuestion(listQuestion);
   };
 
@@ -215,12 +215,14 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
       questionsSave[index] = question;
       question.answers = JSON.stringify(answers);
       question.full_answers = JSON.stringify(question.full_answers);
+      question.image = uploadedImage[index] || "";
     });
     const newAssessment = {
       ...data,
       number_of_question: questionsSave.length,
       questions: questionsSave
     };
+    
     if (action === CRUD_ACTIONS.create) {
       newAssessment.user_id = filter.userId;
       dispatch(fetchCreateAssessment({ asessment: newAssessment, filter }));
@@ -359,6 +361,8 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
                           onChange={(e: any) => {
                             question.title = e.target.value;
                           }}
+                          multiline
+                          rows={4}
                           required
                           defaultValue={question.title}
                           variant="outlined"
@@ -389,17 +393,21 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
                           position: 'relative'
                         }}
                       >
-                        <IconButton
-                          aria-label="add image"
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          component="label"
                           style={{ position: 'absolute', right: '5px' }}
                         >
-                          <NoteAddIcon sx={{ fontSize: 20 }} />
-                        </IconButton>
-                        <div>
-                          <img
-                            src={question.image}
-                            width="100%"
+                          <Input
+                            sx={{ display: 'none' }}
+                            type="file"
+                            onChange={(e: any) => handleAddImage(e, index)}
                           />
+                          <NoteAddIcon sx={{ fontSize: 20 }} />
+                        </Button>
+                        <div>
+                          <img src={uploadedImage[index]} width="100%" />
                         </div>
                       </Grid>
                     </Grid>

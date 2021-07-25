@@ -6,9 +6,11 @@ import Assessment from 'src/model/assessment';
 
 class AssessmentApi {
   assessmentApiEndpoint: string;
+  imageApiEndpoint: string;
 
   constructor() {
     this.assessmentApiEndpoint = `${REACT_APP_API_ENDPOINT}assessment`;
+    this.imageApiEndpoint = `${REACT_APP_API_ENDPOINT}image`;
   }
 
   getAllAssessment(filter: SearchAssessment, token: string) {
@@ -52,6 +54,13 @@ class AssessmentApi {
   deleteAssessment(id: number, token: string) {
     return axiosRequest(this.assessmentApiEndpoint + `/${id}`, axiosMethod.DELETE, token, null);
   }
+
+  uploadImage = (file: any, token: string) => {
+    const formData = new FormData();
+    formData.append(`file`, file);
+    return axiosRequest(this.imageApiEndpoint + `/upload`, axiosMethod.POST, token, formData);
+  };
+
 }
 
 export default new AssessmentApi();

@@ -210,7 +210,11 @@ const AssessmentTable = (dataRef: any) => {
                       <TableCell>
                         <Typography noWrap>{assessment.title}</Typography>
                       </TableCell>
-                      <TableCell> {assessment.number_of_question} questions</TableCell>
+                      <TableCell>
+                        {' '}
+                        {assessment.number_of_question}{' '}
+                        {assessment.number_of_question == 1 ? 'question' : 'questions'}
+                      </TableCell>
                       <TableCell> {assessment.time} minus</TableCell>
                       <TableCell>
                         <Chip
