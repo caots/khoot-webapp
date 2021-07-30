@@ -3,9 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/styles';
 import DialogSelect from './dialogSelect';
 import AssessmentEditDialog from './assessmentEditDialog';
+import ResultPlayer from './resultPlayer';
 import ConfirmDeleteDialog from 'src/components/customDialog';
 import ContentCopyIcon from '@material-ui/icons/ContentCopy';
-
+import PeopleAltIcon from '@material-ui/icons/PeopleAlt';
 import {
   Paper,
   Typography,
@@ -100,6 +101,7 @@ const AssessmentTable = (dataRef: any) => {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [openChangeStatusDialog, setOpenChangeStatusDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openEditDialogResultPlayer, setOpenEditDialogResultPlayer] = useState(false);
 
   useEffect(() => {
     !isFetchingDeleteAssessment &&
@@ -161,6 +163,13 @@ const AssessmentTable = (dataRef: any) => {
     dispatch(clearMsg(`fetchUpdateAssessmentMsg`));
     dispatch(fetchGetAssessmentById(id));
     setOpenEditDialog(true);
+  };
+
+  const handleButtonResultPlayer = (id: number) => {
+    dispatch(clearMsg(`fetchCreateAssessmentMsg`));
+    dispatch(clearMsg(`fetchUpdateAssessmentMsg`));
+    dispatch(fetchGetAssessmentById(id));
+    setOpenEditDialogResultPlayer(true);
   };
 
   const handleButtonChangeStatus = (id: number, status: any) => {
@@ -244,6 +253,11 @@ const AssessmentTable = (dataRef: any) => {
                               <DeleteIcon color="error" />
                             </IconButton>
                           </Tooltip>
+                          <Tooltip title="player">
+                            <IconButton onClick={() => handleButtonResultPlayer(assessment.id)}>
+                              <PeopleAltIcon color="info" />
+                            </IconButton>
+                          </Tooltip>
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -269,6 +283,13 @@ const AssessmentTable = (dataRef: any) => {
           needOpen={openEditDialog}
           action={CRUD_ACTIONS.update}
           handleClose={() => setOpenEditDialog(false)}
+          assessment={currentAssessment}
+        />
+      )}
+      {openEditDialogResultPlayer && (
+        <ResultPlayer
+          needOpen={openEditDialogResultPlayer}
+          handleClose={() => setOpenEditDialogResultPlayer(false)}
           assessment={currentAssessment}
         />
       )}

@@ -27,7 +27,7 @@ const Login = () => {
   const loginMsg_gs = useSelector((state: any) => state.authenSlice.fetchLoginMsg);
 
   useEffect(() => {
-    isAuth_gs && router.push('/');
+    isAuth_gs && router.push('/assessment');
   }, [isAuth_gs]);
 
   const handleFormSubmit = (data: any, formik: any) => {

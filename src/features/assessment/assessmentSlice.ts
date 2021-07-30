@@ -68,6 +68,20 @@ export const fetchCreateAssessment = createAsyncThunk(
   }
 );
 
+export const fetchCreateResultAssessment = createAsyncThunk(
+  'assessment/fetchCreateResultAssessment',
+  async ({ asessment }: any, { rejectWithValue }) => {
+    try {
+      const assessmentResult = (
+        await AssessmentApi.createResultAssessment(asessment)
+      );
+      return assessmentResult.data;
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.response || error);
+    }
+  }
+);
+
 export const fetchUpdateAssessment = createAsyncThunk(
   'assessment/fetchUpdateAssessment',
   async ({ asessment, filter }: any, { rejectWithValue }) => {
@@ -127,6 +141,9 @@ const initialState = {
   isFetchingCreateAssessment: false,
   fetchCreateAssessmentMsg: null,
 
+  isFetchingCreateResultAssessment: false,
+  fetchCreateResultAssessmentMsg: null,
+
   isFetchingUpdateAssessment: false,
   fetchUpdateAssessmentMsg: null,
 
@@ -147,11 +164,13 @@ export const assessmentSlice = createSlice({
           `isFetchingCreateAssessment`,
           `isFetchingUpdateAssessment`,
           `isFetchingUpdateStatusAssessment`,
+          `isFetchingCreateResultAssessment`,
           `fetchUpdateStatusAssessmentMsg`,
           `fetchDeleteAssessmentMsg`,
           `fetchCreateAssessmentMsg`,
           `fetchUpdateAssessmentMsg`,
           `fetchingGetAssessmentTestMgs`,
+          `fetchCreateResultAssessmentMsg`
         ].includes(action.payload)
       ) {
         state[action.payload] = null;
@@ -220,6 +239,20 @@ export const assessmentSlice = createSlice({
         state.currentProduct = action.payload.currentProduct;
         state.assessments = action.payload.data.results;
         state.assessmentCount = action.payload.data.total;
+      })
+      
+      // Handle create result assessment
+      .addCase(fetchCreateResultAssessment.rejected, (state: any, action) => {
+        state.fetchCreateResultAssessmentMsg = action.payload || action.error.message;
+        state.isFetchingCreateResultAssessment = false;
+      })
+      .addCase(fetchCreateResultAssessment.pending, (state: any) => {
+        state.fetchCreateResultAssessmentMsg = null;
+        state.isFetchingCreateResultAssessment = true;
+      })
+      .addCase(fetchCreateResultAssessment.fulfilled, (state: any, action: any) => {
+        state.fetchCreateResultAssessmentMsg = MESSAGES.SUBMIT_TEST;
+        state.isFetchingCreateResultAssessment = false;
       })
 
       // Handle update assessment

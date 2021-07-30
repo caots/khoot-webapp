@@ -41,6 +41,15 @@ class AssessmentApi {
     );
   }
 
+  createResultAssessment(asessment: Assessment) {
+    return axiosRequest(
+      this.assessmentApiEndpoint + `/player/submit-assessment`,
+      axiosMethod.POST,
+      '',
+      asessment
+    );
+  }
+
   updateAssessment(asessment: Assessment, token: string) {
     return axiosRequest(
       this.assessmentApiEndpoint + `/`,

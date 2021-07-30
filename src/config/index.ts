@@ -34,6 +34,13 @@ export const QUESTION_TYPE = {
 }
 
 export const SELECT_QUESTION_TYPE = [
-  {id: 1, title: 'Multi choice'},
-  {id: 2, title: 'Text area'},
+  { id: 1, title: 'Multi choice' },
+  { id: 2, title: 'Text area' },
 ]
+
+export const RESULT_QUESTION = {
+  0: 'A',
+  1: 'B',
+  2: 'C',
+  3: 'D'
+}

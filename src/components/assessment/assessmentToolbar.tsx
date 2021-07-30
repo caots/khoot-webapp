@@ -32,7 +32,7 @@ const AssessmentToolbar = ({ filter, setFilter, handleCreateButton }: any) => {
           <Grid item xs={12} md={10} spacing={3} container justifyContent="flex-start">
             <Grid item sx={{ width: '60%' }}>
               <SearchTextField
-                placeholder="Search by title"
+                placeholder="Search by title or key" 
                 size="small"
                 value={curFilter.title}
                 onChange={(e: any) => setCurFilter({ ...curFilter, title: e.target.value })}

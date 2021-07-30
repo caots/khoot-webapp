@@ -30,7 +30,7 @@ import moment from 'moment';
 import { StopRounded as SquareIcon, Close as CloseIcon } from '@material-ui/icons';
 import TimerIcon from '@material-ui/icons/Timer';
 import { useSelector, useDispatch } from 'react-redux';
-import { clearMsg, fetchGetAssessmentTest } from 'src/features/assessment/assessmentSlice';
+import { clearMsg, fetchCreateResultAssessment } from 'src/features/assessment/assessmentSlice';
 import { CRUD_ACTIONS, QUESTION_TYPE, SELECT_QUESTION_TYPE, STORAGE_KEY } from 'src/config';
 import { MESSAGES } from 'src/config/message';
 import { displayToast } from 'src/utils/commonService';
@@ -44,11 +44,39 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 
 const TakeTestAssessment = ({ needOpen, handleClose, assessment }: any) => {
   const dispatch = useDispatch();
-
+  const [msg, setMsg] = useState('');
   const [questions, setQuestion]: any = useState([]);
+  const [player, setPlayer]: any = useState({});
   const [timeTest, setTimeTest]: any = useState('');
   const [countTime, setCountTime]: any = useState(-1);
   const [isTimeUp, setIsTimeUp]: any = useState(false);
+  const [isSubmited, setIsSubmited]: any = useState(false);
+
+  const successMsg = MESSAGES.SUBMIT_TEST;
+  const msgName = `fetchCreateResultAssessmentMsg`;
+
+  const isFetchingCreateResultAssessment: number = useSelector(
+    (state: any) => state.assessmentSlice.isFetchingCreateResultAssessment
+  );
+  const fetchCreateResultAssessmentMsg: any = useSelector(
+    (state: any) => state.assessmentSlice.fetchCreateResultAssessmentMsg
+  );
+
+  useEffect(() => {
+    setMsg(fetchCreateResultAssessmentMsg);
+  }, [fetchCreateResultAssessmentMsg]);
+
+  // Display toast on save
+  useEffect(() => {
+    if (!isFetchingCreateResultAssessment && fetchCreateResultAssessmentMsg) {
+      displayToast(
+        msg,
+        successMsg,
+        () => handleClose(),
+        () => dispatch(clearMsg(msgName))
+      );
+    }
+  }, [dispatch, fetchCreateResultAssessmentMsg, isFetchingCreateResultAssessment, msg, successMsg]);
 
   useEffect(() => {
     if (assessment) {
@@ -62,12 +90,13 @@ const TakeTestAssessment = ({ needOpen, handleClose, assessment }: any) => {
         question.answers.forEach((ans: any) => (ans.status = false));
       });
       setQuestion(listQuestion);
+      setPlayer(assessment.player);
       setCountTime(assessment.time * 60);
     }
   }, [assessment]);
 
   useEffect(() => {
-    if (countTime >= 0 && assessment) {
+    if (countTime >= 0 && assessment && !isSubmited) {
       const timeShow = moment().add(assessment.time, 'minutes').add(2, 'seconds').valueOf();
       const countDown = setInterval(() => {
         // Get today's date and time
@@ -90,7 +119,7 @@ const TakeTestAssessment = ({ needOpen, handleClose, assessment }: any) => {
         setTimeTest(`${hours}h ${minutes}m ${seconds}s`);
       }, 1000);
     }
-  }, [countTime]);
+  }, [assessment, countTime, isSubmited]);
 
   const submitTestResult = () => {
     setIsTimeUp(true);
@@ -118,7 +147,11 @@ const TakeTestAssessment = ({ needOpen, handleClose, assessment }: any) => {
   };
 
   const submitTest = () => {
-    console.log(questions);
+    setIsSubmited(true);
+    let submitAssessment = { ...assessment };
+    submitAssessment.questions = questions;
+    submitAssessment.playerId = player.id;
+    dispatch(fetchCreateResultAssessment({ asessment: submitAssessment }));
   };
 
   return (
@@ -145,11 +178,21 @@ const TakeTestAssessment = ({ needOpen, handleClose, assessment }: any) => {
                 color="text.secondary"
                 gutterBottom
               >
-                Questions
+                Hello {player.name}
               </Typography>
-              <div style={{ minWidth: '150px' }}>
+              <div
+                style={{
+                  minWidth: '150px',
+                  fontSize: '30px',
+                  background: '#1976d2',
+                  padding: '10px',
+                  color: '#fff',
+                  borderRadius: '20px'
+                }}
+              >
                 <Typography id="input-slider" gutterBottom>
-                <TimerIcon style={{ fontSize: '35px' }} /> Time Take Test: {isTimeUp ? 'Time has Expired!' : timeTest}
+                  <TimerIcon style={{ fontSize: '35px' }} /> Time Take Test:{' '}
+                  {isTimeUp ? 'Time has Expired!' : timeTest}
                 </Typography>
                 {/* <Grid container spacing={2} alignItems="center">
                   <Grid item>
