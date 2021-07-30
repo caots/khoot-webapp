@@ -18,6 +18,11 @@ class AssessmentApi {
     return axiosRequest(this.assessmentApiEndpoint + `/list${query}`, axiosMethod.GET, token, null);
   }
 
+  getAssessmentTest(joinKey: string, name: string) {
+    const query = makeQuery({ joinKey, name });
+    return axiosRequest(this.assessmentApiEndpoint + `/player/join${query}`, axiosMethod.GET, '', null);
+  }
+
   getAssessmentById(assessmentId: number, token: string) {
     return axiosRequest(
       this.assessmentApiEndpoint + `/${assessmentId}`,

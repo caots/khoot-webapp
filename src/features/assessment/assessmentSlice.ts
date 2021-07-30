@@ -22,6 +22,19 @@ export const fetchGetAllAssessment = createAsyncThunk(
   }
 );
 
+export const fetchGetAssessmentTest = createAsyncThunk(
+  'assessment/fetchGetAssessmentTest',
+  async (data: Object, { rejectWithValue }) => {
+    const { joinKey, name }: any = data;
+    try {
+      const response = await AssessmentApi.getAssessmentTest(joinKey, name);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.response || error);
+    }
+  }
+);
+
 export const fetchGetAssessmentById = createAsyncThunk(
   'assessment/fetchGetAssessmentById',
   async (assessmentId: number, { rejectWithValue }) => {
@@ -109,6 +122,7 @@ const initialState = {
   fetchGetAllAssessmentsMsg: null,
 
   isFetchingGetAssessmentById: false,
+  fetchingGetAssessmentTestMgs: null,
 
   isFetchingCreateAssessment: false,
   fetchCreateAssessmentMsg: null,
@@ -137,6 +151,7 @@ export const assessmentSlice = createSlice({
           `fetchDeleteAssessmentMsg`,
           `fetchCreateAssessmentMsg`,
           `fetchUpdateAssessmentMsg`,
+          `fetchingGetAssessmentTestMgs`,
         ].includes(action.payload)
       ) {
         state[action.payload] = null;
@@ -166,13 +181,28 @@ export const assessmentSlice = createSlice({
         state.assessments = action.payload.results;
       })
 
-      // Handle get product by id
+      // Handle get assessment by id
       .addCase(fetchGetAssessmentById.pending, (state: any) => {
         state.isFetchingGetAssessmentById = true;
       })
       .addCase(fetchGetAssessmentById.fulfilled, (state: any, action) => {
         state.isFetchingGetAssessmentById = false;
         state.currentAssessment = action.payload;
+
+      })
+      // Handle get assessment by join key
+      .addCase(fetchGetAssessmentTest.pending, (state: any) => {
+        state.isFetchingGetAssessmentById = true;
+        state.fetchingGetAssessmentTestMgs = null;
+      })
+      .addCase(fetchGetAssessmentTest.fulfilled, (state: any, action) => {
+        state.isFetchingGetAssessmentById = false;
+        state.currentAssessment = action.payload;
+        state.fetchingGetAssessmentTestMgs = MESSAGES.JOIN_TEST;
+      })
+      .addCase(fetchGetAssessmentTest.rejected, (state: any, action) => {
+        state.fetchingGetAssessmentTestMgs = action.payload || action.error.message;
+        state.isFetchingGetAssessmentById = false;
       })
 
       // Handle create assessment

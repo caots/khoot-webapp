@@ -7,6 +7,7 @@ export const MESSAGES = {
   BTN_NO: 'No',
   BTN_OK: 'Ok',
   BTN_CANCEL: 'Cancel',
+  JOIN_TEST: 'Join Take Test Assessment',
 
   DELETE_ASSESSMENT: 'Are you sure to want delete this assessment?',
   CHANGE_STATUS_ASSESSMENT: 'Are you sure to want change status this assessment?'

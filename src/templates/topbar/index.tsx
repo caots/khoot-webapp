@@ -41,12 +41,12 @@ const DashboardTopbar = ({ onMobileNavOpen, ...rest }: any) => {
             action: () => {
               dispatch(logout());
               setOpenDialog_ls(false);
-              router.push('/');
+              router.push('/login');
             }
           }}
         />
-        <Tooltip title="Đăng xuất">
-          <IconButton color="primary" onClick={() => setOpenDialog_ls(true)}>
+        <Tooltip title="login">
+          <IconButton color="primary" onClick={() => router.push('/login')}>
             <InputIcon />
           </IconButton>
         </Tooltip>

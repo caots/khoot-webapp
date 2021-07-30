@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 const Index = () => {
   const router = useRouter();
   useEffect(() => {
-    router.push('/assessment');
+    router.push('/take-assessment');
   }, []);
   return (
     <Main meta={<Meta title="Khoot" description="Khoot is play game or tools for school" />}>
