@@ -228,6 +228,7 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
       dispatch(fetchCreateAssessment({ asessment: newAssessment, filter }));
     } else if (action === CRUD_ACTIONS.update) {
       delete newAssessment.is_deleted;
+      delete newAssessment?.listResults;
       newAssessment.questions.forEach((question: Question, index: number) => {
         delete question.id;
         delete question.created_at;

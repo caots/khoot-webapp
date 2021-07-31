@@ -8,8 +8,10 @@ import MenuIcon from '@material-ui/icons/Menu';
 import NotificationsIcon from '@material-ui/icons/NotificationsOutlined';
 import InputIcon from '@material-ui/icons/Input';
 import Logo from 'src/components/logo';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from 'src/features/authen/authenSlice';
+import { getToken } from 'src/utils/authService';
+import { STORAGE_KEY } from 'src/config';
 
 const DashboardTopbar = ({ onMobileNavOpen, ...rest }: any) => {
   const dispatch = useDispatch();
@@ -17,13 +19,20 @@ const DashboardTopbar = ({ onMobileNavOpen, ...rest }: any) => {
 
   const [notifications] = useState([]);
   const [openDialog_ls, setOpenDialog_ls] = useState(false);
+  const getUserDataMsg = useSelector((state: any) => state.authenSlice.fetchUserDataMsg);
+
+  const clickHome = () => {
+    if (!getToken(STORAGE_KEY.ACCESS_TOKEN) || !!getUserDataMsg) {
+      router.push('/take-assessment');
+    } else router.push('/assessment');
+  };
 
   return (
     <AppBar elevation={5} {...rest} color="inherit">
       <Toolbar>
-        <Link href="/">
+        <div onClick={() => clickHome()}>
           <Logo />
-        </Link>
+        </div>
         <Box sx={{ flexGrow: 1 }} />
         <IconButton sx={{ display: { xs: 'none', lg: 'block' } }} color="primary">
           <Badge badgeContent={notifications.length} color="primary" variant="dot">
@@ -46,7 +55,13 @@ const DashboardTopbar = ({ onMobileNavOpen, ...rest }: any) => {
           }}
         />
         <Tooltip title="login">
-          <IconButton color="primary" onClick={() => router.push('/login')}>
+          <IconButton
+            color="primary"
+            onClick={() => {
+              dispatch(logout());
+              router.push('/login');
+            }}
+          >
             <InputIcon />
           </IconButton>
         </Tooltip>

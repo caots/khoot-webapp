@@ -24,21 +24,27 @@ import {
 } from '@material-ui/core';
 import { StopRounded as SquareIcon, Close as CloseIcon } from '@material-ui/icons';
 import moment from 'moment';
+import { RESULT_QUESTION } from 'src/config';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} />;
 });
 
+const ShowResult = ({ data }: any) => {
+  const result = JSON.parse(data);
+  console.log(result);
+  return (
+    <div>
+      {result.map((res: number, index: number) => (
+        <div>
+          Question {index + 1} : {RESULT_QUESTION[res]}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const ResultPlayer = ({ needOpen, handleClose, assessment }: any) => {
-  const showResult = (data: string) => {
-    const result = JSON.parse(data);
-    let show = '';
-    result.map((res: any, index: number) => {
-      show += `Question ${index + 1} : ${RESULT_QUESTION[res]} \n`;
-    });
-    return show;
-  };
-  
   return (
     <>
       <Dialog open={needOpen} fullScreen>
@@ -65,14 +71,16 @@ const ResultPlayer = ({ needOpen, handleClose, assessment }: any) => {
                 </TableHead>
                 <TableBody>
                   {!!assessment &&
-                    assessment.listResults.length > 0 &&
+                    assessment.listResults &&
                     assessment.listResults.map((result: any, index: number) => {
                       return (
                         <TableRow hover role="checkbox" tabIndex={-1} key={index}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell> {result.name_player}</TableCell>
                           <TableCell> {result.point}</TableCell>
-                          <TableCell> {showResult(result.results)}</TableCell>
+                          <TableCell>
+                            <ShowResult data={result.results} />
+                          </TableCell>
                           <TableCell> {moment(result.created_at).format('LLLL')}</TableCell>
                         </TableRow>
                       );
