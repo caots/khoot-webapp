@@ -224,6 +224,7 @@ const AssessmentEditDialog = ({ needOpen, handleClose, action, assessment, filte
     };
     
     if (action === CRUD_ACTIONS.create) {
+      delete newAssessment?.listResults;
       newAssessment.user_id = filter.userId;
       dispatch(fetchCreateAssessment({ asessment: newAssessment, filter }));
     } else if (action === CRUD_ACTIONS.update) {
